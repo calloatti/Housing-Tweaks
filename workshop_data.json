@@ -2,11 +2,12 @@
   "ItemId": "3707442601",
   "Name": "Housing Tweaks",
   "Visibility": "Public",
-  "UpdateDescription": true,
-  "UpdateVisibility": true,
-  "UpdatePreview": true,
+  "UpdateDescription": false,
+  "UpdateVisibility": false,
+  "UpdatePreview": false,
   "UpdateTags": true,
   "Tags": [
+    "Update 1.1",
     "Update 1.0",
     "Balance"
   ]
