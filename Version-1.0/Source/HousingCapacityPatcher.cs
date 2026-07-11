@@ -1,17 +1,18 @@
 using HarmonyLib;
 using System;
-using System.Reflection;
-using UnityEngine;
-using Timberborn.DwellingSystem;
 using Timberborn.BlueprintSystem;
+using Timberborn.DwellingSystem;
+using Timberborn.EntitySystem;
+using UnityEngine;
 
 namespace Calloatti.HousingTweaks
 {
   [HarmonyPatch(typeof(SpecService), "Load")]
   public static class HousingCapacityPatcher
   {
-    // Cache the backing field once. MaxBeavers is an { get; init; } property on DwellingSpec.
-    public static readonly FieldInfo MaxBeaversField = typeof(DwellingSpec).GetField("<MaxBeavers>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+    // Replaced Reflection FieldInfo with Harmony's FieldRef for direct, zero-allocation memory access.
+    // This is required because MaxBeavers is an { get; init; } property on a record.
+    public static AccessTools.FieldRef<DwellingSpec, int> MaxBeaversRef = AccessTools.FieldRefAccess<DwellingSpec, int>("<MaxBeavers>k__BackingField");
 
     [HarmonyPostfix]
     public static void Postfix(SpecService __instance)
@@ -25,8 +26,6 @@ namespace Calloatti.HousingTweaks
     {
       try
       {
-        bool fileModified = false;
-
         // Directly access publicized fields
         var sourceService = specService._blueprintSourceService;
         var deserializer = specService._blueprintDeserializer;
@@ -45,11 +44,12 @@ namespace Calloatti.HousingTweaks
           // 1. Get Default Capacity
           string rawJson = OriginalCapacityFetcher.GetRawJson(sourceService, blueprint);
           int defaultCap = OriginalCapacityFetcher.GetOriginalCapacity(blueprint, rawJson);
-          
+
           if (defaultCap <= 0) defaultCap = blueprint.GetSpec<DwellingSpec>().MaxBeavers;
 
           // 2. Modded Capacity using SimpleConfig
           int moddedCap = defaultCap;
+
 
           if (ModStarter.Config.HasKey(blueprint.Name))
           {
@@ -59,24 +59,34 @@ namespace Calloatti.HousingTweaks
           else
           {
             ModStarter.Config.Set(blueprint.Name, defaultCap);
-            ModStarter.Config.SetComment(blueprint.Name, $"Default value: {defaultCap}");
-            fileModified = true;
           }
 
+          // Always apply SetInlineComment to force legacy file comments into the modern layout structure
+          ModStarter.Config.SetInlineComment(
+            key: blueprint.Name,
+            type: "int",
+            defaultValue: defaultCap,
+            label: blueprint.Name,
+            tooltip: "Sets the maximum number of beavers that can live in this building.",
+            controlType: "slider",
+            minValue: 1,
+            maxValue: 100,
+            step: 1,
+            requiresReload: true
+          );
+          
           Debug.Log($"[HousingTweaks] {blueprint.Name} | Default: {defaultCap} | Modded: {moddedCap}");
 
           // 3. Apply modded capacity if it differs from the default
           if (moddedCap != defaultCap)
           {
-            MaxBeaversField?.SetValue(blueprint.GetSpec<DwellingSpec>(), moddedCap);
+            MaxBeaversRef(blueprint.GetSpec<DwellingSpec>()) = moddedCap;
           }
         }
 
-        if (fileModified)
-        {
-          Debug.Log("[HousingTweaks] Saving dynamic keys via SimpleConfig...");
-          ModStarter.Config.Save();
-        }
+         Debug.Log("[HousingTweaks] Saving dynamic keys via SimpleConfig...");
+         ModStarter.Config.Save();
+
       }
       catch (Exception ex)
       {
