@@ -47,34 +47,42 @@ namespace Calloatti.HousingTweaks
 
           if (defaultCap <= 0) defaultCap = blueprint.GetSpec<DwellingSpec>().MaxBeavers;
 
-          // 2. Modded Capacity using SimpleConfig
+          // 2. Modded Capacity using SimpleConfig (with Defensive Auto-Repair)
           int moddedCap = defaultCap;
-
 
           if (ModStarter.Config.HasKey(blueprint.Name))
           {
             moddedCap = ModStarter.Config.GetInt(blueprint.Name);
-            if (moddedCap <= 0) moddedCap = defaultCap;
+
+            // DEFENSIVE CHECK: If the key exists but is 0 or negative, heal it!
+            if (moddedCap <= 0)
+            {
+              moddedCap = defaultCap;
+              ModStarter.Config.InsertOrUpdate(blueprint.Name, moddedCap);
+            }
           }
           else
           {
-            ModStarter.Config.Set(blueprint.Name, defaultCap);
+            // Brand new entry: Safe initial insert
+            ModStarter.Config.InsertOrUpdate(blueprint.Name, moddedCap);
           }
+
+          string locKey = blueprint.GetSpec<LabeledEntitySpec>()?.DisplayNameLocKey ?? blueprint.Name;
 
           // Always apply SetInlineComment to force legacy file comments into the modern layout structure
           ModStarter.Config.SetInlineComment(
             key: blueprint.Name,
             type: "int",
             defaultValue: defaultCap,
-            label: blueprint.Name,
-            tooltip: "Sets the maximum number of beavers that can live in this building.",
-            controlType: "slider",
-            minValue: 1,
-            maxValue: 100,
-            step: 1,
+            label: locKey,
+            tooltip: "Calloatti.Config.HousingBuilding.MaxBeavers.Tooltip",
+            controlType: "Slider",
+            minValue: 1f,
+            maxValue: 100f,
+            step: 1f,
             requiresReload: true
           );
-          
+
           Debug.Log($"[HousingTweaks] {blueprint.Name} | Default: {defaultCap} | Modded: {moddedCap}");
 
           // 3. Apply modded capacity if it differs from the default
@@ -84,8 +92,8 @@ namespace Calloatti.HousingTweaks
           }
         }
 
-         Debug.Log("[HousingTweaks] Saving dynamic keys via SimpleConfig...");
-         ModStarter.Config.Save();
+        Debug.Log("[HousingTweaks] Saving dynamic keys via SimpleConfig...");
+        ModStarter.Config.Save();
 
       }
       catch (Exception ex)

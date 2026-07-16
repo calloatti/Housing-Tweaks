@@ -1,6 +1,6 @@
 ﻿{
   "Name": "Housing Tweaks",
-  "Version": "1.1.0",
+  "Version": "1.1.1",
   "Id": "Calloatti.HousingTweaks",
   "MinimumGameVersion": "1.0.0.0",
   "Description": "Allows changing the capacity of housing buildings.",
