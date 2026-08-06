@@ -4,11 +4,6 @@
   "Id": "Calloatti.HousingTweaks",
   "MinimumGameVersion": "1.0.0.0",
   "Description": "Allows changing the capacity of housing buildings.",
-  "RequiredMods": [
-    {
-      "Id": "Harmony",
-      "MinVersion": "2.4.1"
-    }
-  ],
+  "RequiredMods": [{"Id": "Harmony", "MinVersion": "2.4.1"}],
   "OptionalMods": []
 }
