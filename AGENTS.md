@@ -19,3 +19,8 @@ Tweaks housing capacity values. Uses Harmony patches to override building capaci
 | `ModStarter.cs` | Entry point — `IModStarter` |
 | `HousingCapacityPatcher.cs` | Harmony patches for housing capacity |
 | `OriginalCapacityFetcher.cs` | Utility to read original capacity values |
+
+## Hard Rule
+DO NOT EVER TOUCH THE DEPLOY FOLDER.
+
+BUILD DOES EVERYTHING, NEVER EVER MESS WITH THE DEPLOY PROCESS.

@@ -13,7 +13,7 @@ namespace Calloatti.HousingTweaks
     {
       Config = new SimpleConfig(modEnvironment.ModPath);
 
-      new Harmony("calloatti.housingtweaks").PatchAll();
+      new Harmony("Calloatti.HousingTweaks").PatchAll();
 
       Debug.Log("[HousingTweaks] Harmony Patches Applied.");
     }
